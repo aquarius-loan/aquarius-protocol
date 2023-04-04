@@ -64,7 +64,7 @@ Installation
 ------------
 To run aquarius, pull the repository from GitHub and install its dependencies. You will need [yarn](https://yarnpkg.com/lang/en/docs/install/) or [npm](https://docs.npmjs.com/cli/install) installed.
 
-    git clone https://github.com/aquariusloan/aquarius-protocol
+    git clone https://github.com/aquarius-loan/aquarius-protocol
     cd aquarius-protocol
     yarn install --lock-file # or `npm install`
 
@@ -80,29 +80,29 @@ The Aquarius Loan has a simple scenario evaluation tool to test and evaluate sce
     Command: Read AToken aBAT Address
     AddressV<val=0xAD53863b864AE703D31b819d29c14cDA93D7c6a6>
 
-You can read more about the scenario runner in the [Scenario Docs](https://github.com/aquariusloan/aquarius-protocol/tree/master/scenario/SCENARIO.md) on steps for using the repl.
+You can read more about the scenario runner in the [Scenario Docs](https://github.com/aquarius-loan/aquarius-protocol/tree/main/scenario/SCENARIO.md) on steps for using the repl.
 
 Testing
 -------
-Jest contract tests are defined under the [tests directory](https://github.com/aquariusloan/aquarius-protocol/tree/master/tests). To run the tests run:
+Jest contract tests are defined under the [tests directory](https://github.com/aquarius-loan/aquarius-protocol/tree/main/tests). To run the tests run:
 
     yarn test
 
 Integration Specs
 -----------------
 
-There are additional tests under the [spec/scenario](https://github.com/aquariusloan/aquarius-protocol/tree/master/spec/scenario) folder. These are high-level integration tests based on the scenario runner depicted above. The aim of these tests is to be highly literate and have high coverage in the interaction of contracts.
+There are additional tests under the [spec/scenario](https://github.com/aquarius-loan/aquarius-protocol/tree/main/spec/scenario) folder. These are high-level integration tests based on the scenario runner depicted above. The aim of these tests is to be highly literate and have high coverage in the interaction of contracts.
 
 Formal Verification Specs
 -------------------------
 
 The Aquarius Loan has a number of formal verification specifications, powered by [Certik](https://certik.foundation/projects/aquarius). The Certik Verification evaluates smart contracts for vulnerabilities and certifies their behavior with respect to a custom function specification.
 =======
-See the [Scenario Docs](https://github.com/aquariusloan/aquarius-protocol/tree/master/scenario/SCENARIO.md) on steps for using the repl.
+See the [Scenario Docs](https://github.com/aquarius-loan/aquarius-protocol/tree/main/scenario/SCENARIO.md) on steps for using the repl.
 
 Testing
 -------
-Contract tests are defined under the [tests directory](https://github.com/aquariusloan/aquarius-protocol/tree/master/tests). To run the tests run:
+Contract tests are defined under the [tests directory](https://github.com/aquarius-loan/aquarius-protocol/tree/main/tests). To run the tests run:
 
     yarn test
 
@@ -124,10 +124,10 @@ Docker
 To run in docker:
 
     # Build the docker image
-    docker build -t aquariusloan/aquarius-protocol .
+    docker build -t aquarius-loan/aquarius-protocol .
 
     # Run a shell to the built image
-    docker run -it aquariusloan/aquarius-protocol /bin/sh
+    docker run -it aquarius-loan/aquarius-protocol /bin/sh
 
 From within a docker shell, you can interact locally with the protocol via ganache and truffle:
 
@@ -156,7 +156,7 @@ After you deploy, as above, you can run a truffle console with the following com
 
     yarn console -n goerli
 
-This command will start a saddle console connected to Goerli testnet (see [Saddle README](https://github.com/aquariusloan/saddle#cli)):
+This command will start a saddle console connected to Goerli testnet (see [Saddle README](https://github.com/aquarius-loan/saddle#cli)):
 
 ```javascript
     Using network goerli https://goerli.infura.io/v3/e1a5d4d2c06a4e81945fca56d0d5d8ea
@@ -233,7 +233,7 @@ npx saddle -n rinkeby script token:match 0x19B674715cD20626415C738400FDd0d32D680
 To deploy a specific version of the Aquarius Loan, you can use the `token:deploy` script through Docker:
 
 ```bash
-docker run --env BTTCSCAN_API_KEY --env VERIFY=true --env ACCOUNT=0x$(cat ~/.ethereum/rinkeby) aquariusloan/aquarius-protocol:latest npx saddle -n rinkeby script token:deploy '{
+docker run --env BTTCSCAN_API_KEY --env VERIFY=true --env ACCOUNT=0x$(cat ~/.ethereum/rinkeby) aquarius-loan/aquarius-protocol:latest npx saddle -n rinkeby script token:deploy '{
   "underlying": "0x577D296678535e4903D59A4C929B718e1D575e0A",
   "comptroller": "$Comptroller",
   "interestRateModel": "$Base200bps_Slope3000bps",
@@ -248,7 +248,7 @@ docker run --env BTTCSCAN_API_KEY --env VERIFY=true --env ACCOUNT=0x$(cat ~/.eth
 To match a deployed contract against a given version of the Aquarius Loan, you can run `token:match` through Docker, passing a token address and config:
 
 ```bash
-docker run --env ACCOUNT=0x$(cat ~/.ethereum/rinkeby) aquariusloan/aquarius-protocol:latest npx saddle -n rinkeby script token:match 0xF1BAd36CB247C82Cb4e9C2874374492Afb50d565 '{
+docker run --env ACCOUNT=0x$(cat ~/.ethereum/rinkeby) aquarius-loan/aquarius-protocol:latest npx saddle -n rinkeby script token:match 0xF1BAd36CB247C82Cb4e9C2874374492Afb50d565 '{
   "underlying": "0x577D296678535e4903D59A4C929B718e1D575e0A",
   "comptroller": "$Comptroller",
   "interestRateModel": "$Base200bps_Slope3000bps",
