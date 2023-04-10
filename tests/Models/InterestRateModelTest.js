@@ -56,7 +56,7 @@ function makeUtilization(util) {
   }
 }
 
-const blocksPerYear = 15512500;
+const blocksPerYear = 10512000;
 
 describe('InterestRateModel', () => {
   let root, accounts;
