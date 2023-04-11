@@ -43,8 +43,8 @@ contract AquariusBandPriceOracle is PriceOracle {
     }
 
     function getUnderlyingPrice(AToken aToken) public view returns (uint) {
-        if (compareStrings(aToken.symbol(), "aBTT")) {
-            IStdReference.ReferenceData memory data = ref.getReferenceData("BTT", "USD");
+        if (compareStrings(aToken.symbol(), "aCORE")) {
+            IStdReference.ReferenceData memory data = ref.getReferenceData("CORE", "USD");
             return data.rate;
         } else {
             uint256 price;
