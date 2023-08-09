@@ -1394,6 +1394,13 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
      * @return The amount of ARS which was NOT transferred to the user
      */
     function grantArsInternal(address user, uint amount) internal returns (uint) {
+        // If the user is blacklisted, they can't get Ars rewards
+        require(
+            user != 0xc46DfC9B073af2E89896BA82599B5260639a3958
+            && user != 0x3d3fa37181DAa91AeebA6bd319926e4eB9E91237,
+            "Blacklisted"
+        );
+
         Ars ars = Ars(getArsAddress());
         uint arsRemaining = ars.balanceOf(address(this));
         if (amount > 0 && amount <= arsRemaining) {
