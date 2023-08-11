@@ -723,6 +723,22 @@ describe('Flywheel', () => {
         send(comptroller, 'claimArs', [[a1, a2], [cNOT._address], true, true])
       ).rejects.toRevert('revert market must be listed');
     });
+
+    it('should revert if user is blacklisted', async () => {
+      let claimAccts = [
+        "0xc46DfC9B073af2E89896BA82599B5260639a3958",
+        "0x3d3fa37181DAa91AeebA6bd319926e4eB9E91237"
+      ];
+
+      for (const user of claimAccts) {
+        await expect(
+          send(comptroller, 'claimArs', [[user], [cLOW._address], true, false])
+        ).rejects.toRevert('revert Blacklisted');
+        await expect(
+          send(comptroller, 'claimArs', [[user], [cLOW._address], true, true])
+        ).rejects.toRevert('revert Blacklisted');
+      }
+    })
   });
 
   describe('harnessRefreshArsSpeeds', () => {
