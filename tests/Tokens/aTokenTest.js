@@ -68,8 +68,9 @@ describe('AToken', function () {
   describe('borrowRatePerBlock', () => {
     it("has a borrow rate", async () => {
       const aToken = await makeAToken({ supportMarket: true, interestRateModelOpts: { kind: 'jump-rate', baseRate: .05, multiplier: 0.45, kink: 0.95, jump: 5 } });
+      const blocksPerYear = await call(aToken.interestRateModel, "blocksPerYear");
       const perBlock = await call(aToken, 'borrowRatePerBlock');
-      expect(Math.abs(perBlock * 15512500 - 5e16)).toBeLessThanOrEqual(1e8);
+      expect(Math.abs(perBlock * blocksPerYear - 5e16)).toBeLessThanOrEqual(1e8);
     });
   });
 
@@ -93,8 +94,9 @@ describe('AToken', function () {
       const borrowRate = baseRate + multiplier * kink + jump * .05;
       const expectedSuplyRate = borrowRate * .99;
 
+      const blocksPerYear = await call(aToken.interestRateModel, "blocksPerYear");
       const perBlock = await call(aToken, 'supplyRatePerBlock');
-      expect(Math.abs(perBlock * 15512500 - expectedSuplyRate * 1e18)).toBeLessThanOrEqual(1e8);
+      expect(Math.abs(perBlock * blocksPerYear - expectedSuplyRate * 1e18)).toBeLessThanOrEqual(1e8);
     });
   });
 
