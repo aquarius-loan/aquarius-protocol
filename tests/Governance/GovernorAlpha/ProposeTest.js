@@ -46,7 +46,7 @@ describe('GovernorAlpha#propose/5', () => {
     });
 
     it("End block is set to the current block number plus the sum of vote delay and vote period", async () => {
-      expect(trivialProposal.endBlock).toEqual(proposalBlock + 1 + 129600 + "");
+      expect(trivialProposal.endBlock).toEqual(proposalBlock + 1 + 86400 + "");
     });
 
     it("ForVotes and AgainstVotes are initialized to zero", async () => {
@@ -144,7 +144,7 @@ describe('GovernorAlpha#propose/5', () => {
         signatures: signatures,
         calldatas: callDatas,
         startBlock: 14,
-        endBlock: 129614,
+        endBlock: 86414,
         description: "second proposal",
         proposer: accounts[3]
       });

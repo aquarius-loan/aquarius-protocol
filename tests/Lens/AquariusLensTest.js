@@ -326,7 +326,7 @@ describe('AquariusLens', () => {
             againstVotes: "0",
             calldatas: callDatas,
             canceled: false,
-            endBlock: (Number(proposalBlock) + 129601).toString(),
+            endBlock: (Number(proposalBlock) + 86401).toString(),
             eta: "0",
             executed: false,
             forVotes: "0",
