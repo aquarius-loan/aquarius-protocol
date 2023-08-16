@@ -1399,7 +1399,7 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
             }
         }
         for (uint j = 0; j < holders.length; j++) {
-            arsAccrued[holders[j]] = grantArsInternal(holders[j], arsAccrued[holders[j]]);
+            arsAccrued[holders[j]] = stakeArsInternal(holders[j], arsAccrued[holders[j]]);
         }
     }
 
@@ -1410,7 +1410,7 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
      * @param amount The amount of ARS to (possibly) transfer and stake
      * @return The amount of ARS which was NOT staked and transferred to the staking
      */
-    function grantArsInternal(address user, uint amount) internal returns (uint) {
+    function stakeArsInternal(address user, uint amount) internal returns (uint) {
         // If the user is blacklisted, they can't get Ars rewards
         require(
             user != 0xc46DfC9B073af2E89896BA82599B5260639a3958
@@ -1418,8 +1418,8 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
             "Blacklisted"
         );
 
-        Ars ars = Ars(getArsAddress());
         if (arsStaking != address(0)) {
+            Ars ars = Ars(getArsAddress());
             uint arsRemaining = ars.balanceOf(address(this));
             if (amount > 0 && amount <= arsRemaining) {
                 ars.transfer(arsStaking, amount);
@@ -1427,11 +1427,24 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
                 return 0;
             }
         } else {
-            uint arsRemaining = ars.balanceOf(address(this));
-            if (amount > 0 && amount <= arsRemaining) {
-                ars.transfer(user, amount);
-                return 0;
-            }
+            return grantArsInternal(user, amount);
+        }
+        return amount;
+    }
+
+    /**
+     * @notice Transfer ARS to the user
+     * @dev Note: If there is not enough ARS, we do not perform the transfer all.
+     * @param user The address of the user to transfer ARS to
+     * @param amount The amount of ARS to (possibly) transfer
+     * @return The amount of ARS which was NOT transferred to the user
+     */
+    function grantArsInternal(address user, uint amount) internal returns (uint) {
+        Ars ars = Ars(getArsAddress());
+        uint arsRemaining = ars.balanceOf(address(this));
+        if (amount > 0 && amount <= arsRemaining) {
+            ars.transfer(user, amount);
+            return 0;
         }
         return amount;
     }
