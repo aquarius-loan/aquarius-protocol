@@ -168,3 +168,8 @@ contract ComptrollerV8Storage is ComptrollerV7Storage {
      */
     address public teamPauseGuardian;
 }
+
+contract ComptrollerV9Storage is ComptrollerV8Storage {
+    /// @notice ARS staking
+    address public arsStaking;
+}
