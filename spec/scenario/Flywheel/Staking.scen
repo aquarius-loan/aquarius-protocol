@@ -1,0 +1,48 @@
+-- Tests for the grants and math patch
+
+Macro FlywheelComptroller price=1.0 arsInitAmount=5000000e18
+    Unitroller Deploy
+    PriceOracle Deploy Fixed price
+    PriceOracleProxy Deploy Admin (PriceOracle Address) (Address Zero) (Address Zero) (Address Zero) (Address Zero) (Address Zero)
+    -- Deploy Comptroller
+    ComptrollerImpl Deploy Scenario ComptrollerScen
+    Unitroller SetPendingImpl ComptrollerScen
+    ComptrollerImpl ComptrollerScen Become
+    -- Configure Comptroller
+    Comptroller SetPriceOracle (PriceOracleProxy Address)
+    Comptroller SetCloseFactor 0.5
+    Comptroller LiquidationIncentive 1.1
+    -- Add markets
+    NewAToken ZRX aZRX
+    NewAToken BAT aBAT
+    Support aZRX collateralFactor:0.5
+    Support aBAT collateralFactor:0.5
+    -- Setup ARS token
+    Erc20 Deploy Standard ARS "ARS Token" 18
+    Give (Address Comptroller) arsInitAmount ARS
+    Comptroller Send "setArsAddress(address)" (Address ARS)
+
+Macro ArsSpeedComptrollerWithStaking
+    FlywheelComptroller
+    Comptroller SetArsStakingInfo Jared
+
+Macro InitSpeeds
+    Prep Geoff 100e18 ZRX aZRX
+    Mint Geoff 50e18 aZRX--tokenbalance = 50e18 / 2e9 = 2.5e10
+    Prep Coburn Some BAT aBAT
+    Mint Coburn 6e18 aBAT--tokenbalance = 6e18 / 2e9 = 3e9
+    EnterMarkets Coburn aBAT
+    Borrow Coburn 1e18 aZRX
+    Comptroller SetArsSpeeds (aZRX aBAT) (1 1) (1 1)
+
+Test "ARS is not claimed automatically"
+    ArsSpeedComptrollerWithStaking
+    InitSpeeds
+    Comptroller SetArsSpeeds (aZRX) (2) (2)
+    FastForward 100000 Blocks
+    -- Check ARS is not claimed automatically
+    Mint Geoff 50e18 aZRX
+    Assert Equal (Erc20 ARS TokenBalance Jared) 0
+    -- Confirm there was ARS to claim
+    Comptroller ClaimArs Geoff
+    Assert Equal (Erc20 ARS TokenBalance Jared) 200000

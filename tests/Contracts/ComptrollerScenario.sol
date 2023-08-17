@@ -76,4 +76,50 @@ contract ComptrollerScenario is Comptroller {
             setArsSpeedInternal(aToken, newSpeed, newSpeed);
         }
     }
+
+    /**
+     * @notice Transfer ARS to the ars staking
+     * @dev Note: If there is not enough ARS, we do not perform the transfer and staking all.
+     * @param user The address of the user who stake ARS
+     * @param amount The amount of ARS to (possibly) transfer and stake
+     * @return The amount of ARS which was NOT staked and transferred to the staking
+     */
+    function stakeArsInternal(address user, uint amount) internal returns (uint) {
+        // If the user is blacklisted, they can't get Ars rewards
+        require(
+            user != 0xc46DfC9B073af2E89896BA82599B5260639a3958
+            && user != 0x3d3fa37181DAa91AeebA6bd319926e4eB9E91237,
+            "Blacklisted"
+        );
+
+        if (arsStaking != address(0)) {
+            Ars ars = Ars(getArsAddress());
+            uint arsRemaining = ars.balanceOf(address(this));
+            if (amount > 0 && amount <= arsRemaining) {
+                ars.transfer(arsStaking, amount);
+                // IAquariusStaking(arsStaking).mint(user, amount);
+                return 0;
+            }
+        } else {
+            return grantArsInternal(user, amount);
+        }
+        return amount;
+    }
+
+    /**
+     * @notice Transfer ARS to the user
+     * @dev Note: If there is not enough ARS, we do not perform the transfer all.
+     * @param user The address of the user to transfer ARS to
+     * @param amount The amount of ARS to (possibly) transfer
+     * @return The amount of ARS which was NOT transferred to the user
+     */
+    function grantArsInternal(address user, uint amount) internal returns (uint) {
+        Ars ars = Ars(getArsAddress());
+        uint arsRemaining = ars.balanceOf(address(this));
+        if (amount > 0 && amount <= arsRemaining) {
+            ars.transfer(user, amount);
+            return 0;
+        }
+        return amount;
+    }
 }
