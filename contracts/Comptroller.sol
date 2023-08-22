@@ -38,14 +38,8 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
     /// @notice Emitted when pause guardian is changed
     event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian);
 
-    /// @notice Emitted when renounce pause guardian
-    event RenouncePauseGuardian(address oldPauseGuardian);
-
     /// @notice Emitted when team pause guardian is changed
     event NewTeamPauseGuardian(address oldTeamPauseGuardian, address newTeamPauseGuardian);
-
-    /// @notice Emitted when renounce team pause guardian
-    event RenounceTeamPauseGuardian(address oldTeamPauseGuardian);
 
     /// @notice Emitted when an action is paused globally
     event ActionPaused(string action, bool pauseState);
@@ -1060,27 +1054,6 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Admin function to renounce the Pause Guardian
-     * @return uint 0=success, otherwise a failure. (See enum Error for details)
-     */
-    function _renouncePauseGuardian() public returns (uint) {
-        if (msg.sender != admin && msg.sender != teamPauseGuardian) {
-            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
-        }
-
-        // Save current value for inclusion in log
-        address oldPauseGuardian = pauseGuardian;
-
-        // renounce the Pause Guardian
-        pauseGuardian = address(0);
-
-        // Emit RenouncePauseGuardian(OldPauseGuardian)
-        emit RenouncePauseGuardian(oldPauseGuardian);
-
-        return uint(Error.NO_ERROR);
-    }
-
-    /**
      * @notice Admin function to change the Team Pause Guardian
      * @param newTeamPauseGuardian The address of the new Team Pause Guardian
      * @return uint 0=success, otherwise a failure. (See enum Error for details)
@@ -1098,27 +1071,6 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
 
         // Emit NewTeamPauseGuardian(OldTeamPauseGuardian, NewTeamPauseGuardian)
         emit NewTeamPauseGuardian(oldTeamPauseGuardian, teamPauseGuardian);
-
-        return uint(Error.NO_ERROR);
-    }
-
-    /**
-     * @notice Admin function to renounce the Team Pause Guardian
-     * @return uint 0=success, otherwise a failure. (See enum Error for details)
-     */
-    function _renounceTeamPauseGuardian() public returns (uint) {
-        if (msg.sender != admin && msg.sender != teamPauseGuardian) {
-            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
-        }
-
-        // Save current value for inclusion in log
-        address oldTeamPauseGuardian = teamPauseGuardian;
-
-        // renounce the Team Pause Guardian
-        teamPauseGuardian = address(0);
-
-        // Emit RenounceTeamPauseGuardian(OldTeamPauseGuardian)
-        emit RenounceTeamPauseGuardian(oldTeamPauseGuardian);
 
         return uint(Error.NO_ERROR);
     }
