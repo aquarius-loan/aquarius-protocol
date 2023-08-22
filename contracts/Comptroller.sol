@@ -38,14 +38,8 @@ contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerE
     /// @notice Emitted when pause guardian is changed
     event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian);
 
-    /// @notice Emitted when renounce pause guardian
-    event RenouncePauseGuardian(address oldPauseGuardian);
-
     /// @notice Emitted when team pause guardian is changed
     event NewTeamPauseGuardian(address oldTeamPauseGuardian, address newTeamPauseGuardian);
-
-    /// @notice Emitted when renounce team pause guardian
-    event RenounceTeamPauseGuardian(address oldTeamPauseGuardian);
 
     /// @notice Emitted when an action is paused globally
     event ActionPaused(string action, bool pauseState);
