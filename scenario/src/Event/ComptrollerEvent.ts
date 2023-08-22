@@ -332,6 +332,23 @@ async function setContributorArsSpeed(world: World, from: string, comptroller: C
   return world;
 }
 
+async function setArsStakingInfo(
+  world: World,
+  from: string,
+  comptroller: Comptroller,
+  address: string
+): Promise<World> {
+  let invokation = await invoke(world, comptroller.methods._setArsStakingInfo(address), from, ComptrollerErrorReporter);
+
+  world = addAction(
+    world,
+    `Set ars staking info to address: ${address}}`,
+    invokation
+  );
+
+  return world;
+}
+
 async function printLiquidity(world: World, comptroller: Comptroller): Promise<World> {
   let enterEvents = await getPastEvents(world, comptroller, 'StdComptroller', 'MarketEntered');
   let addresses = enterEvents.map((event) => event.returnValues['account']);
@@ -892,7 +909,19 @@ export function comptrollerCommands() {
         new Arg("newBorrowCapGuardian", getAddressV)
       ],
       (world, from, {comptroller, newBorrowCapGuardian}) => setBorrowCapGuardian(world, from, comptroller, newBorrowCapGuardian.val)
-    )
+    ),
+    new Command<{comptroller: Comptroller, address: AddressV}>(`
+      #### SetArsStakingInfo
+      * "Comptroller SetArsStakingInfo <address>" - Sets SetArsStakingInfo
+      * E.g. "Comptroller SetArsStakingInfo 0x..
+      `,
+      "SetArsStakingInfo",
+      [
+        new Arg("comptroller", getComptroller, {implicit: true}),
+        new Arg("address", getAddressV)
+      ],
+      (world, from, {comptroller, address}) => setArsStakingInfo(world, from, comptroller, address.val)
+    ),
   ];
 }
 

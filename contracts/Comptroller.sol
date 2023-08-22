@@ -7,12 +7,13 @@ import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
 import "./Unitroller.sol";
 import "./Governance/Ars.sol";
+import "./Staking/IAquariusStaking.sol";
 
 /**
  * @title Aquarius's Comptroller Contract
  * @author Aquarius
  */
-contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
+contract Comptroller is ComptrollerV9Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
     /// @notice Emitted when an admin supports a market
     event MarketListed(AToken aToken);
 
@@ -81,6 +82,9 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
 
     /// @notice Emitted when ARS receivable for a user has been updated.
     event ArsReceivableUpdated(address indexed user, uint oldArsReceivable, uint newArsReceivable);
+
+    /// @notice Emitted when ars staking info is changed
+    event NewArsStakingInfo(address oldArsStaking, address newArsStaking);
 
     /// @notice The initial ARS index for a market
     uint224 public constant arsInitialIndex = 1e36;
@@ -1153,6 +1157,19 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
         return state;
     }
 
+    function _setArsStakingInfo(address newArsStaking) external returns (uint) {
+        require(msg.sender == admin, "only admin can set ars staking info");
+
+        address oldArsStaking = arsStaking;
+
+        arsStaking = newArsStaking;
+
+        // Emit NewArsStakingInfo(OldArsStaking, NewArsStaking)
+        emit NewArsStakingInfo(oldArsStaking, newArsStaking);
+
+        return uint(Error.NO_ERROR);
+    }
+
     function _become(Unitroller unitroller) public {
         require(msg.sender == unitroller.admin(), "only unitroller admin can change brains");
         require(unitroller._acceptImplementation() == 0, "change not authorized");
@@ -1382,8 +1399,37 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
             }
         }
         for (uint j = 0; j < holders.length; j++) {
-            arsAccrued[holders[j]] = grantArsInternal(holders[j], arsAccrued[holders[j]]);
+            arsAccrued[holders[j]] = stakeArsInternal(holders[j], arsAccrued[holders[j]]);
         }
+    }
+
+    /**
+     * @notice Transfer ARS to the ars staking
+     * @dev Note: If there is not enough ARS, we do not perform the transfer and staking all.
+     * @param user The address of the user who stake ARS
+     * @param amount The amount of ARS to (possibly) transfer and stake
+     * @return The amount of ARS which was NOT staked and transferred to the staking
+     */
+    function stakeArsInternal(address user, uint amount) internal returns (uint) {
+        // If the user is blacklisted, they can't get Ars rewards
+        require(
+            user != 0xc46DfC9B073af2E89896BA82599B5260639a3958
+            && user != 0x3d3fa37181DAa91AeebA6bd319926e4eB9E91237,
+            "Blacklisted"
+        );
+
+        if (arsStaking != address(0)) {
+            Ars ars = Ars(getArsAddress());
+            uint arsRemaining = ars.balanceOf(address(this));
+            if (amount > 0 && amount <= arsRemaining) {
+                ars.transfer(arsStaking, amount);
+                IAquariusStaking(arsStaking).mint(user, amount);
+                return 0;
+            }
+        } else {
+            return grantArsInternal(user, amount);
+        }
+        return amount;
     }
 
     /**
@@ -1394,13 +1440,6 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
      * @return The amount of ARS which was NOT transferred to the user
      */
     function grantArsInternal(address user, uint amount) internal returns (uint) {
-        // If the user is blacklisted, they can't get Ars rewards
-        require(
-            user != 0xc46DfC9B073af2E89896BA82599B5260639a3958
-            && user != 0x3d3fa37181DAa91AeebA6bd319926e4eB9E91237,
-            "Blacklisted"
-        );
-
         Ars ars = Ars(getArsAddress());
         uint arsRemaining = ars.balanceOf(address(this));
         if (amount > 0 && amount <= arsRemaining) {

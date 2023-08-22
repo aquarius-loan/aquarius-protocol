@@ -72,6 +72,7 @@ interface ComptrollerMethods {
   borrowCapGuardian(): Callable<string>
   borrowCaps(string): Callable<string>
   isDeprecated(aToken: string): Callable<string>
+  _setArsStakingInfo(address): Sendable<number>
 }
 
 export interface Comptroller extends Contract {
