@@ -341,7 +341,7 @@ contract AquariusStaking is AquariusStakingG1Storage {
         } else {
             earnings[idx - 1].amount = earnings[idx - 1].amount.add(amount);
         }
-        emit Staked(user, amount);
+        emit ArsVested(user, amount);
     }
 
     // Withdraw staked tokens
@@ -517,6 +517,7 @@ contract AquariusStaking is AquariusStakingG1Storage {
     event RewardTokenAdded(address indexed rewardTokenAddress);
     event RewardDistributorApproved(address indexed rewardAddress, address indexed distributor, bool approved);
     event Staked(address indexed user, uint256 amount);
+    event ArsVested(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);
     event Recovered(address token, uint256 amount);
