@@ -80,9 +80,6 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
     /// @notice Emitted when ars staking info is changed
     event NewArsStakingInfo(address oldArsStaking, address newArsStaking);
 
-    /// @notice Emitted when incentives controller is changed
-    event NewIncentivesController(address oldController, address newController);
-
     /// @notice The initial ARS index for a market
     uint224 public constant arsInitialIndex = 1e36;
 
@@ -1121,18 +1118,6 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
 
         // Emit NewArsStakingInfo(OldArsStaking, NewArsStaking)
         emit NewArsStakingInfo(oldArsStaking, newArsStaking);
-
-        return uint(Error.NO_ERROR);
-    }
-
-    function _setIncentivesController(address newController) external returns (uint) {
-        require(msg.sender == admin, "only admin can set incentives controller");
-
-        address oldController = incentivesController;
-
-        incentivesController = newController;
-
-        emit NewIncentivesController(oldController, newController);
 
         return uint(Error.NO_ERROR);
     }
