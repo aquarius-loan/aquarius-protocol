@@ -233,6 +233,20 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
     }
 
     /**
+     * @notice Get the debt of the `account`
+     * @param account The address whose debt should be calculated
+     * @return The calculated debt
+     */
+    function debtBalanceOf(address account) public view returns (uint256) {
+        BorrowSnapshot storage borrowSnapshot = accountBorrows[account];
+        if (borrowSnapshot.interestIndex > 0) {
+            return borrowSnapshot.principal / borrowSnapshot.interestIndex;
+        }
+
+        return 0;
+    }
+
+    /**
      * @dev Function to simply retrieve block number
      *  This exists mainly for inheriting test contracts to stub this result.
      */
