@@ -451,6 +451,12 @@ contract BoolComptroller is ComptrollerInterface {
     function setFailCalculateSeizeTokens(bool shouldFail) public {
         failCalculateSeizeTokens = shouldFail;
     }
+
+    /*** Getter for Incentives Controller ***/
+
+    function incentivesController() external view returns(address) {
+        return address(0);
+    }
 }
 
 contract EchoTypesComptroller is UnitrollerAdminStorage {
