@@ -124,14 +124,24 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         // unused function
         // comptroller.transferVerify(address(this), src, dst, tokens);
 
-        if (address(IIncentivesComptroller(address(comptroller)).incentivesController()) != address(0)) {
-			IIncentivesComptroller(address(comptroller)).incentivesController().handleActionAfter(true, src, accountTokens[src], totalSupply);
-			if (src != dst) {
-				IIncentivesComptroller(address(comptroller)).incentivesController().handleActionAfter(true, dst, accountTokens[dst], totalSupply);
-			}
-		}
+        handleActionAfter(true, src, dst);
 
         return uint(Error.NO_ERROR);
+    }
+
+    function handleActionAfter(bool isSupply, address src, address dst) internal {
+        IIncentivesController incentivesController = IIncentivesComptroller(address(comptroller)).incentivesController();
+        if (address(incentivesController) != address(0)) {
+			incentivesController.handleActionAfter(
+                isSupply,
+                src,
+                isSupply ? accountTokens[src] : accountBorrows[src].principal / borrowIndex,
+                isSupply ? totalSupply : totalBorrows / borrowIndex
+            );
+			if (src != dst) {
+				incentivesController.handleActionAfter(true, dst, accountTokens[dst], totalSupply);
+			}
+		}
     }
 
     /**
@@ -584,9 +594,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         // unused function
         // comptroller.mintVerify(address(this), minter, vars.actualMintAmount, vars.mintTokens);
 
-        if (address(IIncentivesComptroller(address(comptroller)).incentivesController()) != address(0)) {
-			IIncentivesComptroller(address(comptroller)).incentivesController().handleActionAfter(true, minter, accountTokens[minter], totalSupply);
-		}
+        handleActionAfter(true, minter, minter);
 
         return (uint(Error.NO_ERROR), vars.actualMintAmount);
     }
@@ -735,9 +743,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         /* We call the defense hook */
         comptroller.redeemVerify(address(this), redeemer, vars.redeemAmount, vars.redeemTokens);
 
-        if (address(IIncentivesComptroller(address(comptroller)).incentivesController()) != address(0)) {
-			IIncentivesComptroller(address(comptroller)).incentivesController().handleActionAfter(true, redeemer, accountTokens[redeemer], totalSupply);
-		}
+        handleActionAfter(true, redeemer, redeemer);
 
         return uint(Error.NO_ERROR);
     }
@@ -833,14 +839,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         // unused function
         // comptroller.borrowVerify(address(this), borrower, borrowAmount);
 
-        if (address(IIncentivesComptroller(address(comptroller)).incentivesController()) != address(0) && borrowIndex != 0) {
-			IIncentivesComptroller(address(comptroller)).incentivesController().handleActionAfter(
-                false,
-                borrower,
-                accountBorrows[borrower].principal / borrowIndex,
-                totalBorrows / borrowIndex
-            );
-		}
+        handleActionAfter(false, borrower, borrower);
 
         return uint(Error.NO_ERROR);
     }
@@ -960,14 +959,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         // unused function
         // comptroller.repayBorrowVerify(address(this), payer, borrower, vars.actualRepayAmount, vars.borrowerIndex);
 
-        if (address(IIncentivesComptroller(address(comptroller)).incentivesController()) != address(0) && borrowIndex != 0) {
-			IIncentivesComptroller(address(comptroller)).incentivesController().handleActionAfter(
-                false,
-                payer,
-                accountBorrows[payer].principal / borrowIndex,
-                totalBorrows / borrowIndex
-            );
-		}
+        handleActionAfter(false, payer, payer);
 
         return (uint(Error.NO_ERROR), vars.actualRepayAmount);
     }
