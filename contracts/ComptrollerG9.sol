@@ -13,7 +13,7 @@ import "./Staking/IAquariusStaking.sol";
  * @title Aquarius's Comptroller Contract
  * @author Aquarius
  */
-contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
+contract ComptrollerG9 is ComptrollerV10Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
     /// @notice Emitted when an admin supports a market
     event MarketListed(AToken aToken);
 

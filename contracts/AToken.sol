@@ -130,16 +130,41 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
     }
 
     function handleActionAfter(bool isSupply, address src, address dst) internal {
-        IIncentivesController incentivesController = IIncentivesComptroller(address(comptroller)).incentivesController();
-        if (address(incentivesController) != address(0)) {
-			incentivesController.handleActionAfter(
-                isSupply,
-                src,
-                isSupply ? accountTokens[src] : accountBorrows[src].principal / borrowIndex,
-                isSupply ? totalSupply : totalBorrows / borrowIndex
-            );
+        address incentivesController = IIncentivesComptroller(address(comptroller)).incentivesController();
+        if (incentivesController != address(0)) {
+            /* We use low-level call to make the original lending action work even though the external contract call failed */
+            string memory signature = "handleActionAfter(bool,address,uint256,uint256)";
+            if (isSupply) {
+                incentivesController.call(abi.encodeWithSignature(signature,
+                    true,
+                    src,
+                    accountTokens[src],
+                    totalSupply
+                ));
+            } else {
+                MathError mathErr;
+                Exp memory accountBorrowValue;
+                Exp memory totalBorrowValue;
+
+                (mathErr, accountBorrowValue) = getExp(accountBorrows[src].principal, borrowIndex);
+                if (mathErr != MathError.NO_ERROR) {
+                    return;
+                }
+
+                (mathErr, totalBorrowValue) = getExp(totalBorrows, borrowIndex);
+                if (mathErr != MathError.NO_ERROR) {
+                    return;
+                }
+
+                incentivesController.call(abi.encodeWithSignature(signature,
+                    false,
+                    src,
+                    accountBorrowValue.mantissa,
+                    totalBorrowValue.mantissa
+                ));
+            }
 			if (src != dst) {
-				incentivesController.handleActionAfter(true, dst, accountTokens[dst], totalSupply);
+                incentivesController.call(abi.encodeWithSignature(signature, true, dst, accountTokens[dst], totalSupply));
 			}
 		}
     }
@@ -249,11 +274,15 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
      */
     function debtBalanceOf(address account) public view returns (uint256) {
         BorrowSnapshot storage borrowSnapshot = accountBorrows[account];
-        if (borrowSnapshot.interestIndex > 0) {
-            return borrowSnapshot.principal / borrowSnapshot.interestIndex;
+        MathError mathErr;
+        Exp memory accountBorrowValue;
+
+        (mathErr, accountBorrowValue) = getExp(borrowSnapshot.principal, borrowSnapshot.interestIndex);
+        if (mathErr != MathError.NO_ERROR) {
+            return 0;
         }
 
-        return 0;
+        return accountBorrowValue.mantissa;
     }
 
     /**
@@ -1162,6 +1191,8 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         /* We call the defense hook */
         // unused function
         // comptroller.seizeVerify(address(this), seizerToken, liquidator, borrower, seizeTokens);
+
+        handleActionAfter(true, borrower, liquidator);
 
         return uint(Error.NO_ERROR);
     }
