@@ -7,6 +7,7 @@ import "./Exponential.sol";
 import "./EIP20Interface.sol";
 import "./InterestRateModel.sol";
 import "./IIncentivesComptroller.sol";
+import "./IIncentivesController.sol";
 
 /**
  * @title Aquarius's AToken Contract
@@ -132,15 +133,13 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
     function handleActionAfter(bool isSupply, address src, address dst) internal {
         address incentivesController = IIncentivesComptroller(address(comptroller)).incentivesController();
         if (incentivesController != address(0)) {
-            /* We use low-level call to make the original lending action work even though the external contract call failed */
-            string memory signature = "handleActionAfter(bool,address,uint256,uint256)";
             if (isSupply) {
-                incentivesController.call(abi.encodeWithSignature(signature,
+                IIncentivesController(incentivesController).handleActionAfter(
                     true,
                     src,
                     accountTokens[src],
                     totalSupply
-                ));
+                );
             } else {
                 MathError mathErr;
                 Exp memory accountBorrowValue;
@@ -156,15 +155,15 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
                     return;
                 }
 
-                incentivesController.call(abi.encodeWithSignature(signature,
+                IIncentivesController(incentivesController).handleActionAfter(
                     false,
                     src,
                     accountBorrowValue.mantissa,
                     totalBorrowValue.mantissa
-                ));
+                );
             }
 			if (src != dst) {
-                incentivesController.call(abi.encodeWithSignature(signature, true, dst, accountTokens[dst], totalSupply));
+                IIncentivesController(incentivesController).handleActionAfter(true, dst, accountTokens[dst], totalSupply);
 			}
 		}
     }

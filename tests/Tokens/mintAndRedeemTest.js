@@ -293,10 +293,9 @@ describe('AToken', function () {
     });
   });
 
-  describe('mint works even though external incentive controller call failed', () => {
+  describe('mint works when incentive controller set', () => {
     beforeEach(async () => {
       incentivesController = await makeIncentivesController();
-      await send(incentivesController, 'setAllowActionAfter', [false]);
       await send(aToken.comptroller, '_setIncentivesController', [incentivesController._address]);
       await preMint(aToken, minter, mintAmount, mintTokens, exchangeRate);
     });
@@ -315,12 +314,16 @@ describe('AToken', function () {
         totalBorrows: "0",
       });
     });
+
+    it("mint revert when incentives controller call reverted", async () => {
+      await send(incentivesController, 'setAllowActionAfter', [false]);
+      await expect(quickMint(aToken, minter, mintAmount)).rejects.toRevert("revert IncentivesControllerMock: not allowed");
+    });
   });
 
-  describe('redeem works even though external incentive controller call failed', () => {
+  describe('redeem works when incentive controller set', () => {
     beforeEach(async () => {
       incentivesController = await makeIncentivesController();
-      await send(incentivesController, 'setAllowActionAfter', [false]);
       await send(aToken.comptroller, '_setIncentivesController', [incentivesController._address]);
       await preRedeem(aToken, redeemer, redeemTokens, redeemAmount, exchangeRate);
     });
@@ -352,6 +355,14 @@ describe('AToken', function () {
         interestAccumulated: "0",
         totalBorrows: "0",
       });
+    });
+
+    it("redeem revert when incentives controller call reverted", async () => {
+      expect(
+        await send(aToken.underlying, 'harnessSetBalance', [aToken._address, redeemAmount])
+      ).toSucceed();
+      await send(incentivesController, 'setAllowActionAfter', [false]);
+      await expect(quickRedeem(aToken, redeemer, redeemTokens, {exchangeRate})).rejects.toRevert("revert IncentivesControllerMock: not allowed");
     });
   });
 });
