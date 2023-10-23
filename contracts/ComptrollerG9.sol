@@ -13,7 +13,7 @@ import "./Staking/IAquariusStaking.sol";
  * @title Aquarius's Comptroller Contract
  * @author Aquarius
  */
-contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
+contract ComptrollerG9 is ComptrollerV10Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
     /// @notice Emitted when an admin supports a market
     event MarketListed(AToken aToken);
 
@@ -79,9 +79,6 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
 
     /// @notice Emitted when ars staking info is changed
     event NewArsStakingInfo(address oldArsStaking, address newArsStaking);
-
-    /// @notice Emitted when incentives controller is changed
-    event NewIncentivesController(address oldController, address newController);
 
     /// @notice The initial ARS index for a market
     uint224 public constant arsInitialIndex = 1e36;
@@ -1125,18 +1122,6 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
         return uint(Error.NO_ERROR);
     }
 
-    function _setIncentivesController(address newController) external returns (uint) {
-        require(msg.sender == admin, "only admin can set incentives controller");
-
-        address oldController = incentivesController;
-
-        incentivesController = newController;
-
-        emit NewIncentivesController(oldController, newController);
-
-        return uint(Error.NO_ERROR);
-    }
-
     function _become(Unitroller unitroller) public {
         require(msg.sender == unitroller.admin(), "only unitroller admin can change brains");
         require(unitroller._acceptImplementation() == 0, "change not authorized");
@@ -1519,6 +1504,46 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
      */
     function getArsAddress() public view returns (address) {
         return 0x204e2D49b7cDA6d93301bcF667A2Da28Fb0e5780;
+    }
+
+    /**
+      * @notice CAUTION should use only in Comptroller
+      * @notice Begins transfer of admin rights in comptroller. The newPendingAdmin must call `_acceptAdminInComptroller` to finalize the transfer.
+      * @dev Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdminInComptroller` to finalize the transfer.
+      * @param newPendingAdmin New pending admin.
+      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+      */
+    function _setPendingAdminInComptroller(address newPendingAdmin) public returns (uint) {
+        // Check caller = admin
+        if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PENDING_ADMIN_OWNER_CHECK);
+        }
+
+        // Store pendingAdmin with value newPendingAdmin
+        pendingAdmin = newPendingAdmin;
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+      * @notice CAUTION should use only in Comptroller
+      * @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
+      * @dev Admin function for pending admin to accept role and update admin
+      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+      */
+    function _acceptAdminInComptroller() public returns (uint) {
+        // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
+        if (msg.sender != pendingAdmin || msg.sender == address(0)) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.ACCEPT_ADMIN_PENDING_ADMIN_CHECK);
+        }
+
+        // Store admin with value pendingAdmin
+        admin = pendingAdmin;
+
+        // Clear the pending value
+        pendingAdmin = address(0);
+
+        return uint(Error.NO_ERROR);
     }
 
 }

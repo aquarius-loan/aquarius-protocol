@@ -15,7 +15,8 @@ const {
   quickMint,
   preSupply,
   quickRedeem,
-  quickRedeemUnderlying
+  quickRedeemUnderlying,
+  makeIncentivesController
 } = require('../Utils/Aquarius');
 
 const exchangeRate = 50e3;
@@ -60,6 +61,7 @@ async function redeemFreshAmount(aToken, redeemer, redeemTokens, redeemAmount) {
 describe('AToken', function () {
   let root, minter, redeemer, accounts;
   let aToken;
+  let incentivesController;
   beforeEach(async () => {
     [root, minter, redeemer, ...accounts] = saddle.accounts;
     aToken = await makeAToken({comptrollerOpts: {kind: 'bool'}, exchangeRate});
@@ -288,6 +290,79 @@ describe('AToken', function () {
         interestAccumulated: "0",
         totalBorrows: "0",
       });
+    });
+  });
+
+  describe('mint works when incentive controller set', () => {
+    beforeEach(async () => {
+      incentivesController = await makeIncentivesController();
+      await send(aToken.comptroller, '_setIncentivesController', [incentivesController._address]);
+      await preMint(aToken, minter, mintAmount, mintTokens, exchangeRate);
+    });
+
+    it("returns success from mintFresh and mints the correct number of tokens", async () => {
+      expect(await quickMint(aToken, minter, mintAmount)).toSucceed();
+      expect(mintTokens).not.toEqualNumber(0);
+      expect(await balanceOf(aToken, minter)).toEqualNumber(mintTokens);
+    });
+
+    it("emits an AccrueInterest event", async () => {
+      expect(await quickMint(aToken, minter, mintAmount)).toHaveLog('AccrueInterest', {
+        borrowIndex: "1000000000000000000",
+        cashPrior: "0",
+        interestAccumulated: "0",
+        totalBorrows: "0",
+      });
+    });
+
+    it("mint revert when incentives controller call reverted", async () => {
+      await send(incentivesController, 'setAllowActionAfter', [false]);
+      await expect(quickMint(aToken, minter, mintAmount)).rejects.toRevert("revert IncentivesControllerMock: not allowed");
+    });
+  });
+
+  describe('redeem works when incentive controller set', () => {
+    beforeEach(async () => {
+      incentivesController = await makeIncentivesController();
+      await send(aToken.comptroller, '_setIncentivesController', [incentivesController._address]);
+      await preRedeem(aToken, redeemer, redeemTokens, redeemAmount, exchangeRate);
+    });
+
+    it("returns success from redeemFresh and redeems the right amount", async () => {
+      expect(
+        await send(aToken.underlying, 'harnessSetBalance', [aToken._address, redeemAmount])
+      ).toSucceed();
+      expect(await quickRedeem(aToken, redeemer, redeemTokens, {exchangeRate})).toSucceed();
+      expect(redeemAmount).not.toEqualNumber(0);
+      expect(await balanceOf(aToken.underlying, redeemer)).toEqualNumber(redeemAmount);
+    });
+
+    it("returns success from redeemFresh and redeems the right amount of underlying", async () => {
+      expect(
+        await send(aToken.underlying, 'harnessSetBalance', [aToken._address, redeemAmount])
+      ).toSucceed();
+      expect(
+        await quickRedeemUnderlying(aToken, redeemer, redeemAmount, {exchangeRate})
+      ).toSucceed();
+      expect(redeemAmount).not.toEqualNumber(0);
+      expect(await balanceOf(aToken.underlying, redeemer)).toEqualNumber(redeemAmount);
+    });
+
+    it("emits an AccrueInterest event", async () => {
+      expect(await quickMint(aToken, minter, mintAmount)).toHaveLog('AccrueInterest', {
+        borrowIndex: "1000000000000000000",
+        cashPrior: "500000000",
+        interestAccumulated: "0",
+        totalBorrows: "0",
+      });
+    });
+
+    it("redeem revert when incentives controller call reverted", async () => {
+      expect(
+        await send(aToken.underlying, 'harnessSetBalance', [aToken._address, redeemAmount])
+      ).toSucceed();
+      await send(incentivesController, 'setAllowActionAfter', [false]);
+      await expect(quickRedeem(aToken, redeemer, redeemTokens, {exchangeRate})).rejects.toRevert("revert IncentivesControllerMock: not allowed");
     });
   });
 });

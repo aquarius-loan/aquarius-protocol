@@ -310,6 +310,10 @@ async function makeToken(opts = {}) {
   }
 }
 
+async function makeIncentivesController(opts = {}) {
+  return await deploy('IncentivesControllerMock');
+}
+
 async function balanceOf(token, account) {
   return etherUnsigned(await call(token, 'balanceOf', [account]));
 }
@@ -479,6 +483,7 @@ module.exports = {
   makeInterestRateModel,
   makePriceOracle,
   makeToken,
+  makeIncentivesController,
 
   balanceOf,
   totalSupply,

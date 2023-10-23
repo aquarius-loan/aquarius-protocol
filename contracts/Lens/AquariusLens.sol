@@ -19,6 +19,7 @@ interface ComptrollerLensInterface {
     function arsSupplySpeeds(address) external view returns (uint);
     function arsBorrowSpeeds(address) external view returns (uint);
     function borrowCaps(address) external view returns (uint);
+    function getAllMarkets() external view returns (AToken[] memory);
 }
 
 interface GovernorBravoInterface {
@@ -44,7 +45,7 @@ interface GovernorBravoInterface {
     function getReceipt(uint proposalId, address voter) external view returns (Receipt memory);
 }
 
-contract AquariusLens {
+contract AquariusLens is ExponentialNoError {
     struct ATokenMetadata {
         address aToken;
         uint exchangeRateCurrent;
@@ -253,6 +254,50 @@ contract AquariusLens {
             liquidity: liquidity,
             shortfall: shortfall
         });
+    }
+
+    struct AccountSupplyLocalVars {
+        uint sumCollateral;
+        uint aTokenBalance;
+        uint exchangeRateMantissa;
+        uint oraclePriceMantissa;
+        Exp exchangeRate;
+        Exp oraclePrice;
+        Exp tokensToDenom;
+    }
+
+    function getAccountSupply(ComptrollerLensInterface comptroller, address account) public view returns (uint256) {
+        PriceOracle oracle = comptroller.oracle();
+
+        AccountSupplyLocalVars memory vars;
+        uint oErr;
+
+        AToken[] memory assets = comptroller.getAllMarkets();
+        for (uint i = 0; i < assets.length; i++) {
+            AToken asset = assets[i];
+
+            // Read the balances and exchange rate from the aToken
+            (oErr, vars.aTokenBalance, , vars.exchangeRateMantissa) = asset.getAccountSnapshot(account);
+            if (oErr != 0) { // semi-opaque error code, we assume NO_ERROR == 0 is invariant between upgrades
+                continue;
+            }
+            vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
+
+            // Get the normalized price of the asset
+            vars.oraclePriceMantissa = oracle.getUnderlyingPrice(asset);
+            if (vars.oraclePriceMantissa == 0) {
+                continue;
+            }
+            vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
+
+            // Pre-compute a conversion factor from tokens -> ether (normalized price value)
+            vars.tokensToDenom = mul_(vars.oraclePrice, vars.exchangeRate);
+
+            // sumCollateral += tokensToDenom * aTokenBalance
+            vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.aTokenBalance, vars.sumCollateral);
+        }
+
+        return vars.sumCollateral;
     }
 
     struct GovReceipt {

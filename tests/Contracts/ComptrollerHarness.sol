@@ -200,6 +200,8 @@ contract BoolComptroller is ComptrollerInterface {
     bool failCalculateSeizeTokens;
     uint calculatedSeizeTokens;
 
+    address public incentivesController;
+
     uint noError = 0;
     uint opaqueError = noError + 11; // an arbitrary, opaque error code
 
@@ -450,6 +452,12 @@ contract BoolComptroller is ComptrollerInterface {
 
     function setFailCalculateSeizeTokens(bool shouldFail) public {
         failCalculateSeizeTokens = shouldFail;
+    }
+
+    /*** Setter for Incentives Controller ***/
+
+    function _setIncentivesController(address newController) external returns(address) {
+        incentivesController = newController;
     }
 }
 
