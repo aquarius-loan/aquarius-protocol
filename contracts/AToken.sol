@@ -987,7 +987,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         // unused function
         // comptroller.repayBorrowVerify(address(this), payer, borrower, vars.actualRepayAmount, vars.borrowerIndex);
 
-        handleActionAfter(false, payer, payer);
+        handleActionAfter(false, borrower, borrower);
 
         return (uint(Error.NO_ERROR), vars.actualRepayAmount);
     }
