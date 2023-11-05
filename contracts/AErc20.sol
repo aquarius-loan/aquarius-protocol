@@ -46,7 +46,18 @@ contract AErc20 is AToken, AErc20Interface {
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
     function mint(uint mintAmount) external returns (uint) {
-        (uint err,) = mintInternal(mintAmount);
+        (uint err,) = mintInternal(msg.sender, mintAmount);
+        return err;
+    }
+
+    /**
+     * @notice Sender supplies assets on behalf of the minter
+     * @param minter The address of the account which is supplying the assets
+     * @param mintAmount The amount of the underlying asset to supply
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function mintBehalf(address minter, uint mintAmount) external returns (uint) {
+        (uint err,) = mintInternal(minter, mintAmount);
         return err;
     }
 
@@ -76,7 +87,17 @@ contract AErc20 is AToken, AErc20Interface {
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
     function borrow(uint borrowAmount) external returns (uint) {
-        return borrowInternal(borrowAmount);
+        return borrowInternal(msg.sender, borrowAmount);
+    }
+
+    /**
+     * @notice Sender borrows assets from the protocol on behalf of the borrower
+     * @param borrower The address of the account which is borrowing the assets
+     * @param borrowAmount The amount of the underlying asset to borrow
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function borrowBehalf(address borrower, uint borrowAmount) external returns (uint) {
+        return borrowInternal(borrower, borrowAmount);
     }
 
     /**

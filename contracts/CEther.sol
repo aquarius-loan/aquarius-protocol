@@ -42,7 +42,17 @@ contract CEther is AToken {
      * @dev Reverts upon any failure
      */
     function mint() external payable {
-        (uint err,) = mintInternal(msg.value);
+        (uint err,) = mintInternal(msg.sender, msg.value);
+        requireNoError(err, "mint failed");
+    }
+
+    /**
+     * @notice Sender supplies assets on behalf of the minter
+     * @param minter The address of the account which is supplying the assets
+     * @dev Reverts upon any failure
+     */
+    function mintBehalf(address minter) external payable {
+        (uint err,) = mintInternal(minter, msg.value);
         requireNoError(err, "mint failed");
     }
 
@@ -72,7 +82,17 @@ contract CEther is AToken {
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
     function borrow(uint borrowAmount) external returns (uint) {
-        return borrowInternal(borrowAmount);
+        return borrowInternal(msg.sender, borrowAmount);
+    }
+
+    /**
+     * @notice Sender borrows assets from the protocol on behalf of the borrower
+     * @param borrower The address of the account which is borrowing the assets
+     * @param borrowAmount The amount of the underlying asset to borrow
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function borrowBehalf(address borrower, uint borrowAmount) external returns (uint) {
+        return borrowInternal(borrower, borrowAmount);
     }
 
     /**
@@ -118,7 +138,7 @@ contract CEther is AToken {
      * @notice Send Ether to CEther to mint
      */
     function () external payable {
-        (uint err,) = mintInternal(msg.value);
+        (uint err,) = mintInternal(msg.sender, msg.value);
         requireNoError(err, "mint failed");
     }
 
