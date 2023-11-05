@@ -339,6 +339,10 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
         }
     }
 
+    function borrowAllowed(address aToken, address borrower, uint borrowAmount) external returns (uint) {
+        require(false, "not allowed");
+    }
+
     /**
      * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
      * @param aToken The market to verify the borrow against
