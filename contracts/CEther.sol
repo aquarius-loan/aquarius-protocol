@@ -63,7 +63,18 @@ contract CEther is AToken {
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
     function redeem(uint redeemTokens) external returns (uint) {
-        return redeemInternal(redeemTokens);
+        return redeemInternal(redeemTokens, msg.sender);
+    }
+
+    /**
+     * @notice Sender redeems aTokens in exchange for the underlying asset
+     * @dev Accrues interest whether or not the operation succeeds, unless reverted
+     * @param redeemTokens The number of aTokens to redeem into underlying
+     * @param to The address of the account which will receive the underlying asset
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function redeemTo(uint redeemTokens, address payable to) external returns (uint) {
+        return redeemInternal(redeemTokens, to);
     }
 
     /**

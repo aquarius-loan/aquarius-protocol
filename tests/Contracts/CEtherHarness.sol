@@ -89,7 +89,7 @@ contract CEtherHarness is CEther {
     }
 
     function harnessRedeemFresh(address payable account, uint aTokenAmount, uint underlyingAmount) public returns (uint) {
-        return super.redeemFresh(account, aTokenAmount, underlyingAmount);
+        return super.redeemFresh(account, account, aTokenAmount, underlyingAmount);
     }
 
     function harnessAccountBorrows(address account) public view returns (uint principal, uint interestIndex) {

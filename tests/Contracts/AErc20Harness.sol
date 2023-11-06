@@ -100,7 +100,7 @@ contract AErc20Harness is AErc20Immutable {
     }
 
     function harnessRedeemFresh(address payable account, uint aTokenAmount, uint underlyingAmount) public returns (uint) {
-        return super.redeemFresh(account, aTokenAmount, underlyingAmount);
+        return super.redeemFresh(account, account, aTokenAmount, underlyingAmount);
     }
 
     function harnessAccountBorrows(address account) public view returns (uint principal, uint interestIndex) {
@@ -323,7 +323,7 @@ contract AErc20DelegateHarness is AErc20Delegate {
     }
 
     function harnessRedeemFresh(address payable account, uint aTokenAmount, uint underlyingAmount) public returns (uint) {
-        return super.redeemFresh(account, aTokenAmount, underlyingAmount);
+        return super.redeemFresh(account, account, aTokenAmount, underlyingAmount);
     }
 
     function harnessAccountBorrows(address account) public view returns (uint principal, uint interestIndex) {
