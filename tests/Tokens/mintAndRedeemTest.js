@@ -36,7 +36,7 @@ async function preMint(aToken, minter, mintAmount, mintTokens, exchangeRate) {
 }
 
 async function mintFresh(aToken, minter, mintAmount) {
-  return send(aToken, 'harnessMintFresh', [minter, mintAmount]);
+  return send(aToken, 'harnessMintFresh', [minter, mintAmount], { from: minter });
 }
 
 async function preRedeem(aToken, redeemer, redeemTokens, redeemAmount, exchangeRate) {
@@ -118,9 +118,9 @@ describe('AToken', function () {
     });
 
     it("transfers the underlying cash, tokens, and emits Mint, Transfer events", async () => {
-      const beforeBalances = await getBalances([aToken], [minter]);
+      const beforeBalances = await getBalances([aToken], [minter], false);
       const result = await mintFresh(aToken, minter, mintAmount);
-      const afterBalances = await getBalances([aToken], [minter]);
+      const afterBalances = await getBalances([aToken], [minter], false);
       expect(result).toSucceed();
       expect(result).toHaveLog('Mint', {
         minter,

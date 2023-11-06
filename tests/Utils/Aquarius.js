@@ -354,20 +354,20 @@ async function setEtherBalance(cEther, balance) {
   expect(await send(cEther, 'harnessDoTransferIn', [root, balance], { value: balance })).toSucceed();
 }
 
-async function getBalances(aTokens, accounts) {
+async function getBalances(aTokens, accounts, checkEth = true) {
   const balances = {};
   for (let aToken of aTokens) {
     const cBalances = balances[aToken._address] = {};
     for (let account of accounts) {
       cBalances[account] = {
-        eth: await etherBalance(account),
+        eth: checkEth && await etherBalance(account),
         cash: aToken.underlying && await balanceOf(aToken.underlying, account),
         tokens: await balanceOf(aToken, account),
         borrows: (await borrowSnapshot(aToken, account)).principal
       };
     }
     cBalances[aToken._address] = {
-      eth: await etherBalance(aToken._address),
+      eth: checkEth && await etherBalance(aToken._address),
       cash: aToken.underlying && await balanceOf(aToken.underlying, aToken._address),
       tokens: await totalSupply(aToken),
       borrows: await totalBorrows(aToken),

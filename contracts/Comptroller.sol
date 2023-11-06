@@ -339,10 +339,6 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
         }
     }
 
-    function borrowAllowed(address aToken, address borrower, uint borrowAmount) external returns (uint) {
-        require(false, "not allowed");
-    }
-
     /**
      * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
      * @param aToken The market to verify the borrow against
@@ -352,15 +348,26 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
      * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function borrowAllowed(address aToken, address delegate, address borrower, uint borrowAmount) external returns (uint) {
+        // TODO: We will implement the borrowing delegation logic in the future
+        require(delegate == borrower, "delegate must be borrower");
+
+        return borrowAllowed(aToken, borrower, borrowAmount);
+    }
+
+    /**
+     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
+     * @param aToken The market to verify the borrow against
+     * @param borrower The account which would borrow the asset
+     * @param borrowAmount The amount of underlying the account would borrow
+     * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
+     */
+    function borrowAllowed(address aToken, address borrower, uint borrowAmount) public returns (uint) {
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!borrowGuardianPaused[aToken], "borrow is paused");
 
         if (!markets[aToken].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
         }
-
-        // TODO: We will implement the borrowing delegation logic in the future
-        require(delegate == borrower, "delegate must be borrower");
 
         if (!markets[aToken].accountMembership[borrower]) {
             // only aTokens may call borrowAllowed if borrower not in market
