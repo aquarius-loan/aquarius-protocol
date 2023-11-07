@@ -40,13 +40,13 @@ contract AquariusAggregatorPriceOracle is PriceOracle {
     }
 
     function getUnderlyingPrice(AToken aToken) public view returns (uint) {
-        if (compareStrings(aToken.symbol(), "aCORE")) {
+        if (compareStrings(aToken.symbol(), "aETH")) {
             if(prices[address(aToken)] != 0) {
                 return prices[address(aToken)];
             } else if (address(getFeed(aToken.symbol())) != address(0)) {
                 return getChainlinkPrice(getFeed(aToken.symbol()));
             } else {
-                IStdReference.ReferenceData memory data = ref.getReferenceData("CORE", "USD");
+                IStdReference.ReferenceData memory data = ref.getReferenceData("ETH", "USD");
                 return data.rate;
             }
         }else if (compareStrings(aToken.symbol(), "ARS")) {
