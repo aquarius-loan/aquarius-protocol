@@ -36,7 +36,7 @@ describe('GovernorAlpha#queue/1', () => {
       await mineBlock();
 
       const txVote1 = await send(gov, 'castVote', [proposalId1, true], {from: a1});
-      await advanceBlocks(150000);
+      await advanceBlocks(1500000);
 
       await expect(
         send(gov, 'queue', [proposalId1])
@@ -44,7 +44,7 @@ describe('GovernorAlpha#queue/1', () => {
     });
 
     it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
-      const timelock = await deploy('TimelockHarness', [root, 86400 * 2]);
+      const timelock = await deploy('TimelockHarness', [root, 996923 * 2]);
       const ars = await deploy('Ars', [root]);
       const gov = await deploy('GovernorAlpha', [timelock._address, ars._address, root]);
       const txAdmin = await send(timelock, 'harnessSetAdmin', [gov._address]);
@@ -63,7 +63,7 @@ describe('GovernorAlpha#queue/1', () => {
 
       const txVote1 = await send(gov, 'castVote', [proposalId1, true], {from: a1});
       const txVote2 = await send(gov, 'castVote', [proposalId2, true], {from: a2});
-      await advanceBlocks(150000);
+      await advanceBlocks(1500000);
       await freezeTime(100);
 
       const txQueue1 = await send(gov, 'queue', [proposalId1]);

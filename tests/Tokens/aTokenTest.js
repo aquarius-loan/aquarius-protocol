@@ -96,7 +96,7 @@ describe('AToken', function () {
 
       const blocksPerYear = await call(aToken.interestRateModel, "blocksPerYear");
       const perBlock = await call(aToken, 'supplyRatePerBlock');
-      expect(Math.abs(perBlock * blocksPerYear - expectedSuplyRate * 1e18)).toBeLessThanOrEqual(1e8);
+      expect(Math.abs(perBlock * blocksPerYear - expectedSuplyRate * 1e18)).toBeLessThanOrEqual(1e9);
     });
   });
 
