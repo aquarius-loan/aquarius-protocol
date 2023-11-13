@@ -257,6 +257,14 @@ contract BoolComptroller is ComptrollerInterface {
         return allowBorrow ? noError : opaqueError;
     }
 
+    function borrowAllowed(address _aToken, address _delegate, address _borrower, uint _borrowAmount) public returns (uint) {
+        _aToken;
+        _delegate;
+        _borrower;
+        _borrowAmount;
+        return allowBorrow ? noError : opaqueError;
+    }
+
     function borrowVerify(address _aToken, address _borrower, uint _borrowAmount) external {
         _aToken;
         _borrower;

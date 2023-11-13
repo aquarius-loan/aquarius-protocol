@@ -259,9 +259,12 @@ contract AErc20Interface is AErc20Storage {
     /*** User Interface ***/
 
     function mint(uint mintAmount) external returns (uint);
+    function mintBehalf(address minter, uint mintAmount) external returns (uint);
     function redeem(uint redeemTokens) external returns (uint);
+    function redeemTo(uint redeemTokens, address payable to) external returns (uint);
     function redeemUnderlying(uint redeemAmount) external returns (uint);
     function borrow(uint borrowAmount) external returns (uint);
+    function borrowBehalf(address borrower, uint borrowAmount) external returns (uint);
     function repayBorrow(uint repayAmount) external returns (uint);
     function repayBorrowBehalf(address borrower, uint repayAmount) external returns (uint);
     function liquidateBorrow(address borrower, uint repayAmount, ATokenInterface aTokenCollateral) external returns (uint);

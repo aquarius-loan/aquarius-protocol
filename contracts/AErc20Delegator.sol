@@ -84,6 +84,17 @@ contract AErc20Delegator is ATokenInterface, AErc20Interface, ADelegatorInterfac
     }
 
     /**
+     * @notice Sender supplies assets on behalf of the minter
+     * @param minter The address of the account which is supplying the assets
+     * @param mintAmount The amount of the underlying asset to supply
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function mintBehalf(address minter, uint mintAmount) external returns (uint) {
+        bytes memory data = delegateToImplementation(abi.encodeWithSignature("mintBehalf(address,uint256)", minter, mintAmount));
+        return abi.decode(data, (uint));
+    }
+
+    /**
      * @notice Sender redeems aTokens in exchange for the underlying asset
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param redeemTokens The number of aTokens to redeem into underlying
@@ -91,6 +102,18 @@ contract AErc20Delegator is ATokenInterface, AErc20Interface, ADelegatorInterfac
      */
     function redeem(uint redeemTokens) external returns (uint) {
         bytes memory data = delegateToImplementation(abi.encodeWithSignature("redeem(uint256)", redeemTokens));
+        return abi.decode(data, (uint));
+    }
+
+    /**
+     * @notice Sender redeems aTokens in exchange for the underlying asset
+     * @dev Accrues interest whether or not the operation succeeds, unless reverted
+     * @param redeemTokens The number of aTokens to redeem into underlying
+     * @param to The address of the account which will receive the underlying asset
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function redeemTo(uint redeemTokens, address payable to) external returns (uint) {
+        bytes memory data = delegateToImplementation(abi.encodeWithSignature("redeemTo(uint256,address)", redeemTokens, to));
         return abi.decode(data, (uint));
     }
 
@@ -112,6 +135,17 @@ contract AErc20Delegator is ATokenInterface, AErc20Interface, ADelegatorInterfac
       */
     function borrow(uint borrowAmount) external returns (uint) {
         bytes memory data = delegateToImplementation(abi.encodeWithSignature("borrow(uint256)", borrowAmount));
+        return abi.decode(data, (uint));
+    }
+
+    /**
+     * @notice Sender borrows assets from the protocol on behalf of the borrower
+     * @param borrower The address of the account which is borrowing the assets
+     * @param borrowAmount The amount of the underlying asset to borrow
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function borrowBehalf(address borrower, uint borrowAmount) external returns (uint) {
+        bytes memory data = delegateToImplementation(abi.encodeWithSignature("borrowBehalf(address,uint256)", borrower, borrowAmount));
         return abi.decode(data, (uint));
     }
 

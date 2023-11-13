@@ -115,7 +115,7 @@ describe('AToken', function () {
     });
 
     it("reverts if transfer out fails", async () => {
-      await send(aToken, 'harnessSetFailTransferToAddress', [borrower, true]);
+      await send(aToken, 'harnessSetFailTransferToAddress', [root, true]);
       await expect(borrowFresh(aToken, borrower, borrowAmount)).rejects.toRevert("revert TOKEN_TRANSFER_OUT_FAILED");
     });
 
@@ -127,15 +127,15 @@ describe('AToken', function () {
     it("transfers the underlying cash, tokens, and emits Transfer, Borrow events", async () => {
       const beforeProtocolCash = await balanceOf(aToken.underlying, aToken._address);
       const beforeProtocolBorrows = await totalBorrows(aToken);
-      const beforeAccountCash = await balanceOf(aToken.underlying, borrower);
+      const beforeAccountCash = await balanceOf(aToken.underlying, root);
       const result = await borrowFresh(aToken, borrower, borrowAmount);
       expect(result).toSucceed();
-      expect(await balanceOf(aToken.underlying, borrower)).toEqualNumber(beforeAccountCash.plus(borrowAmount));
+      expect(await balanceOf(aToken.underlying, root)).toEqualNumber(beforeAccountCash.plus(borrowAmount));
       expect(await balanceOf(aToken.underlying, aToken._address)).toEqualNumber(beforeProtocolCash.minus(borrowAmount));
       expect(await totalBorrows(aToken)).toEqualNumber(beforeProtocolBorrows.plus(borrowAmount));
       expect(result).toHaveLog('Transfer', {
         from: aToken._address,
-        to: borrower,
+        to: root,
         amount: borrowAmount.toString()
       });
       expect(result).toHaveLog('Borrow', {

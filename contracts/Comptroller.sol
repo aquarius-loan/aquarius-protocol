@@ -342,11 +342,26 @@ contract Comptroller is ComptrollerV10Storage, ComptrollerInterface, Comptroller
     /**
      * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
      * @param aToken The market to verify the borrow against
+     * @param delegate The account which is delegated to borrow the asset
      * @param borrower The account which would borrow the asset
      * @param borrowAmount The amount of underlying the account would borrow
      * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
-    function borrowAllowed(address aToken, address borrower, uint borrowAmount) external returns (uint) {
+    function borrowAllowed(address aToken, address delegate, address borrower, uint borrowAmount) external returns (uint) {
+        // TODO: We will implement the borrowing delegation logic in the future
+        require(delegate == borrower, "delegate must be borrower");
+
+        return borrowAllowed(aToken, borrower, borrowAmount);
+    }
+
+    /**
+     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
+     * @param aToken The market to verify the borrow against
+     * @param borrower The account which would borrow the asset
+     * @param borrowAmount The amount of underlying the account would borrow
+     * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
+     */
+    function borrowAllowed(address aToken, address borrower, uint borrowAmount) public returns (uint) {
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!borrowGuardianPaused[aToken], "borrow is paused");
 

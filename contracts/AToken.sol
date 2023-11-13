@@ -528,17 +528,18 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
     /**
      * @notice Sender supplies assets into the market and receives aTokens in exchange
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
+     * @param minter The address of the account which is supplying the assets
      * @param mintAmount The amount of the underlying asset to supply
      * @return (uint, uint) An error code (0=success, otherwise a failure, see ErrorReporter.sol), and the actual mint amount.
      */
-    function mintInternal(uint mintAmount) internal nonReentrant returns (uint, uint) {
+    function mintInternal(address minter, uint mintAmount) internal nonReentrant returns (uint, uint) {
         uint error = accrueInterest();
         if (error != uint(Error.NO_ERROR)) {
             // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed
             return (fail(Error(error), FailureInfo.MINT_ACCRUE_INTEREST_FAILED), 0);
         }
         // mintFresh emits the actual Mint event if successful and logs on errors, so we don't need to
-        return mintFresh(msg.sender, mintAmount);
+        return mintFresh(minter, mintAmount);
     }
 
     struct MintLocalVars {
@@ -589,7 +590,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
          *  in case of a fee. On success, the aToken holds an additional `actualMintAmount`
          *  of cash.
          */
-        vars.actualMintAmount = doTransferIn(minter, mintAmount);
+        vars.actualMintAmount = doTransferIn(msg.sender, mintAmount);
 
         /*
          * We get the current exchange rate and calculate the number of aTokens to be minted:
@@ -631,16 +632,17 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
      * @notice Sender redeems aTokens in exchange for the underlying asset
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param redeemTokens The number of aTokens to redeem into underlying
+     * @param to The address of the account which will receive the underlying asset
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
-    function redeemInternal(uint redeemTokens) internal nonReentrant returns (uint) {
+    function redeemInternal(uint redeemTokens, address payable to) internal nonReentrant returns (uint) {
         uint error = accrueInterest();
         if (error != uint(Error.NO_ERROR)) {
             // accrueInterest emits logs on errors, but we still want to log the fact that an attempted redeem failed
             return fail(Error(error), FailureInfo.REDEEM_ACCRUE_INTEREST_FAILED);
         }
         // redeemFresh emits redeem-specific logs on errors, so we don't need to
-        return redeemFresh(msg.sender, redeemTokens, 0);
+        return redeemFresh(msg.sender, to, redeemTokens, 0);
     }
 
     /**
@@ -656,7 +658,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
             return fail(Error(error), FailureInfo.REDEEM_ACCRUE_INTEREST_FAILED);
         }
         // redeemFresh emits redeem-specific logs on errors, so we don't need to
-        return redeemFresh(msg.sender, 0, redeemAmount);
+        return redeemFresh(msg.sender, msg.sender, 0, redeemAmount);
     }
 
     struct RedeemLocalVars {
@@ -673,11 +675,12 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
      * @notice User redeems aTokens in exchange for the underlying asset
      * @dev Assumes interest has already been accrued up to the current block
      * @param redeemer The address of the account which is redeeming the tokens
+     * @param to The address of the account which will receive the underlying asset
      * @param redeemTokensIn The number of aTokens to redeem into underlying (only one of redeemTokensIn or redeemAmountIn may be non-zero)
      * @param redeemAmountIn The number of underlying tokens to receive from redeeming aTokens (only one of redeemTokensIn or redeemAmountIn may be non-zero)
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
-    function redeemFresh(address payable redeemer, uint redeemTokensIn, uint redeemAmountIn) internal returns (uint) {
+    function redeemFresh(address redeemer, address payable to, uint redeemTokensIn, uint redeemAmountIn) internal returns (uint) {
         require(redeemTokensIn == 0 || redeemAmountIn == 0, "one of redeemTokensIn or redeemAmountIn must be zero");
 
         RedeemLocalVars memory vars;
@@ -762,7 +765,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
 
-        doTransferOut(redeemer, vars.redeemAmount);
+        doTransferOut(to, vars.redeemAmount);
 
         /* We emit a Transfer event, and a Redeem event */
         emit Transfer(redeemer, address(this), vars.redeemTokens);
@@ -778,17 +781,18 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
 
     /**
       * @notice Sender borrows assets from the protocol to their own address
+      * @param borrower The address of the account which is borrowing the assets
       * @param borrowAmount The amount of the underlying asset to borrow
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
-    function borrowInternal(uint borrowAmount) internal nonReentrant returns (uint) {
+    function borrowInternal(address borrower, uint borrowAmount) internal nonReentrant returns (uint) {
         uint error = accrueInterest();
         if (error != uint(Error.NO_ERROR)) {
             // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed
             return fail(Error(error), FailureInfo.BORROW_ACCRUE_INTEREST_FAILED);
         }
         // borrowFresh emits borrow-specific logs on errors, so we don't need to
-        return borrowFresh(msg.sender, borrowAmount);
+        return borrowFresh(borrower, borrowAmount);
     }
 
     struct BorrowLocalVars {
@@ -803,9 +807,9 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
       * @param borrowAmount The amount of the underlying asset to borrow
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
-    function borrowFresh(address payable borrower, uint borrowAmount) internal returns (uint) {
+    function borrowFresh(address borrower, uint borrowAmount) internal returns (uint) {
         /* Fail if borrow not allowed */
-        uint allowed = comptroller.borrowAllowed(address(this), borrower, borrowAmount);
+        uint allowed = comptroller.borrowAllowed(address(this), msg.sender, borrower, borrowAmount);
         if (allowed != 0) {
             return failOpaque(Error.COMPTROLLER_REJECTION, FailureInfo.BORROW_COMPTROLLER_REJECTION, allowed);
         }
@@ -858,7 +862,7 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
 
-        doTransferOut(borrower, borrowAmount);
+        doTransferOut(msg.sender, borrowAmount);
 
         /* We emit a Borrow event */
         emit Borrow(borrower, borrowAmount, vars.accountBorrowsNew, vars.totalBorrowsNew);
