@@ -64,3 +64,14 @@ Test "Mint accrues no interest without borrows"
     FastForward 1000 Blocks
     Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
     Assert Equal (Erc20 cETH TotalSupply) 4e8
+
+Test "Mint on behalf of another user"
+    NewComptroller
+    ListedEtherToken cETH initialExchangeRate:0.005e9
+    CallMintEth Geoff 0.002e18 cETH
+    Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
+    Assert Equal (Erc20 cETH TotalSupply) 4e8
+    CallMintBehalfEth Geoff Torrey 0.004e18 cETH
+    Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
+    Assert Equal (Erc20 cETH TokenBalance Torrey) 8e8
+    Assert Equal (Erc20 cETH TotalSupply) 12e8

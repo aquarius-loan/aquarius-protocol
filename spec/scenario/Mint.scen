@@ -103,3 +103,15 @@ Test "mint reverts if mint is paused"
     Mint Geoff 2e18 aZRX
     Assert Revert "revert mint is paused"
     Comptroller SetGuardianMarketPaused aZRX "Mint" False
+
+Test "Mint on behalf of another user"
+    NewComptroller
+    ListedAToken ZRX aZRX initialExchangeRate:1e9
+    Prep Geoff Some ZRX aZRX
+    Mint Geoff 2e18 aZRX
+    Assert Equal (Erc20 aZRX TokenBalance Geoff) (Exactly 2e9)
+    Assert Equal (Erc20 aZRX TotalSupply) (Exactly 2e9)
+    MintBehalf Geoff Torrey 2e18 aZRX
+    Assert Equal (Erc20 aZRX TokenBalance Geoff) (Exactly 2e9)
+    Assert Equal (Erc20 aZRX TokenBalance Torrey) (Exactly 2e9)
+    Assert Equal (Erc20 aZRX TotalSupply) (Exactly 4e9)

@@ -82,8 +82,41 @@ async function mint(world: World, from: string, aToken: AToken, amount: NumberV 
   return world;
 }
 
+async function mintBehalf(world: World, from: string, aToken: AToken, minter: string, amount: NumberV | NothingV): Promise<World> {
+  let invokation;
+  let showAmount;
+
+  if (amount instanceof NumberV) {
+    showAmount = amount.show();
+    invokation = await invoke(world, aToken.methods.mintBehalf(minter, amount.encode()), from, ATokenErrorReporter);
+  } else {
+    showAmount = showTrxValue(world);
+    invokation = await invoke(world, aToken.methods.mintBehalf(minter), from, ATokenErrorReporter);
+  }
+
+  world = addAction(
+    world,
+    `AToken ${aToken.name}: ${describeUser(world, from)} mints ${showAmount}`,
+    invokation
+  );
+
+  return world;
+}
+
 async function redeem(world: World, from: string, aToken: AToken, tokens: NumberV): Promise<World> {
   let invokation = await invoke(world, aToken.methods.redeem(tokens.encode()), from, ATokenErrorReporter);
+
+  world = addAction(
+    world,
+    `AToken ${aToken.name}: ${describeUser(world, from)} redeems ${tokens.show()} tokens`,
+    invokation
+  );
+
+  return world;
+}
+
+async function redeemTo(world: World, from: string, aToken: AToken, tokens: NumberV, to: string): Promise<World> {
+  let invokation = await invoke(world, aToken.methods.redeemTo(tokens.encode(), to), from, ATokenErrorReporter);
 
   world = addAction(
     world,
@@ -108,6 +141,18 @@ async function redeemUnderlying(world: World, from: string, aToken: AToken, amou
 
 async function borrow(world: World, from: string, aToken: AToken, amount: NumberV): Promise<World> {
   let invokation = await invoke(world, aToken.methods.borrow(amount.encode()), from, ATokenErrorReporter);
+
+  world = addAction(
+    world,
+    `AToken ${aToken.name}: ${describeUser(world, from)} borrows ${amount.show()}`,
+    invokation
+  );
+
+  return world;
+}
+
+async function borrowBehalf(world: World, from: string, aToken: AToken, borrower: string, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, aToken.methods.borrowBehalf(borrower, amount.encode()), from, ATokenErrorReporter);
 
   world = addAction(
     world,
@@ -544,6 +589,21 @@ export function aTokenCommands() {
       (world, from, { aToken, amount }) => mint(world, from, aToken, amount),
       { namePos: 1 }
     ),
+    new Command<{ aToken: AToken, minter: AddressV, amount: NumberV | NothingV }>(`
+        #### MintBehalf
+
+        * "AToken <aToken> MintBehalf minter:<User> amount:<Number>" - Mints the given amount of aToken on behalf of the minter
+          * E.g. "AToken aZRX MintBehalf Geoff 1.0e18"
+      `,
+      "MintBehalf",
+      [
+        new Arg("aToken", getATokenV),
+        new Arg("minter", getAddressV),
+        new Arg("amount", getNumberV, { nullable: true })
+      ],
+      (world, from, { aToken, minter, amount }) => mintBehalf(world, from, aToken, minter.val, amount),
+      { namePos: 1 }
+    ),
     new Command<{ aToken: AToken, tokens: NumberV }>(`
         #### Redeem
 
@@ -556,6 +616,21 @@ export function aTokenCommands() {
         new Arg("tokens", getNumberV)
       ],
       (world, from, { aToken, tokens }) => redeem(world, from, aToken, tokens),
+      { namePos: 1 }
+    ),
+    new Command<{ aToken: AToken, tokens: NumberV, to: AddressV }>(`
+        #### RedeemTo
+
+        * "AToken <aToken> RedeemTo tokens:<Number> to:<User>" - Redeems the given amount of aTokens, transferring underlying asset to another user.
+          * E.g. "AToken aZRX RedeemTo 1.0e9 Geoff"
+      `,
+      "RedeemTo",
+      [
+        new Arg("aToken", getATokenV),
+        new Arg("tokens", getNumberV),
+        new Arg("to", getAddressV)
+      ],
+      (world, from, { aToken, tokens, to }) => redeemTo(world, from, aToken, tokens, to.val),
       { namePos: 1 }
     ),
     new Command<{ aToken: AToken, amount: NumberV }>(`
@@ -585,6 +660,22 @@ export function aTokenCommands() {
       ],
       // Note: we override from
       (world, from, { aToken, amount }) => borrow(world, from, aToken, amount),
+      { namePos: 1 }
+    ),
+    new Command<{ aToken: AToken, borrower: AddressV, amount: NumberV }>(`
+        #### BorrowBehalf
+
+        * "AToken <aToken> BorrowBehalf borrower:<User> amount:<Number>" - Borrows the given amount of this aToken on behalf of another user
+          * E.g. "AToken aZRX BorrowBehalf Geoff 1.0e18"
+      `,
+      "BorrowBehalf",
+      [
+        new Arg("aToken", getATokenV),
+        new Arg("borrower", getAddressV),
+        new Arg("amount", getNumberV)
+      ],
+      // Note: we override from
+      (world, from, { aToken, borrower, amount }) => borrowBehalf(world, from, aToken, borrower.val, amount),
       { namePos: 1 }
     ),
     new Command<{ aToken: AToken, amount: NumberV | NothingV }>(`

@@ -113,17 +113,29 @@ Macro AccrueInterest token
 Macro Mint user amount token
     From user (AToken token Mint amount)
 
+Macro MintBehalf user minter amount token
+    From user (AToken token MintBehalf minter amount)
+
 Macro SendMintEth user amount token
     From user (Trx GasPrice 0 (Trx Value amount (Send token amount)))
 
 Macro CallMintEth user amount token
     From user (Trx GasPrice 0 (Trx Value amount (AToken token Mint)))
 
+Macro CallMintBehalfEth user minter amount token
+    From user (Trx GasPrice 0 (Trx Value amount (AToken token MintBehalf minter)))
+
 Macro Redeem user amount token
     From user (AToken token Redeem amount)
 
+Macro RedeemTo user amount to token
+    From user (AToken token RedeemTo amount to)
+
 Macro RedeemEth user amount token
     Trx GasPrice 0 (From user (AToken token Redeem amount))
+
+Macro RedeemToEth user amount to token
+    Trx GasPrice 0 (From user (AToken token RedeemTo amount to))
 
 Macro RedeemUnderlying user amount token
     From user (AToken token RedeemUnderlying amount)
@@ -134,8 +146,14 @@ Macro RedeemUnderlyingEth user amount token
 Macro BorrowEth user amount token
     Trx GasPrice 0 (From user (AToken token Borrow amount))
 
+Macro BorrowBehalfEth user borrower amount token
+    Trx GasPrice 0 (From user (AToken token BorrowBehalf borrower amount))
+
 Macro Borrow user amount token
     From user (AToken token Borrow amount)
+
+Macro BorrowBehalf user borrower amount token
+    From user (AToken token BorrowBehalf borrower amount)
 
 Macro RepayBorrow user amount token
     From user (AToken token RepayBorrow amount)

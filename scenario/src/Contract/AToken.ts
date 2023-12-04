@@ -18,9 +18,13 @@ export interface ATokenMethods {
   accrueInterest(): Sendable<number>;
   mint(): Sendable<number>;
   mint(amount: encodedNumber): Sendable<number>;
+  mintBehalf(minter: string): Sendable<number>;
+  mintBehalf(minter: string, amount: encodedNumber): Sendable<number>;
   redeem(amount: encodedNumber): Sendable<number>;
+  redeemTo(amount: encodedNumber, to: string): Sendable<number>;
   redeemUnderlying(amount: encodedNumber): Sendable<number>;
   borrow(amount: encodedNumber): Sendable<number>;
+  borrowBehalf(borrower: string, amount: encodedNumber): Sendable<number>;
   repayBorrow(): Sendable<number>;
   repayBorrow(amount: encodedNumber): Sendable<number>;
   repayBorrowBehalf(amount: string): Sendable<number>;

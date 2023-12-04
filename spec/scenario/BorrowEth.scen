@@ -47,3 +47,19 @@ Test "Borrow some ETH from excess cash"
     BorrowEth Geoff 0.001e18 cETH
     Assert Equal (EtherBalance cETH) 0.002e18
     Assert Equal (Comptroller Liquidity Geoff) 4.99e17
+
+Test "Borrow behalf of"
+    NewComptroller price:1.0
+    ListedAToken ZRX aZRX
+    ListedEtherToken cETH initialExchangeRate:0.005e9
+    SetCollateralFactor aZRX collateralFactor:0.5
+    SetCollateralFactor cETH collateralFactor:0.5
+    Donate cETH 0.003e18
+    Prep Geoff Some ZRX aZRX
+    Mint Geoff 1e18 aZRX
+    EnterMarkets Geoff aZRX cETH
+    Expect Changes (EtherBalance Geoff) +0.001e18
+    -- Still borrowing on behalf of another user is not allowed and this feature is under development progress
+    BorrowBehalfEth Geoff Geoff 0.001e18 cETH
+    Assert Equal (EtherBalance cETH) 0.002e18
+    Assert Equal (Comptroller Liquidity Geoff) 4.99e17

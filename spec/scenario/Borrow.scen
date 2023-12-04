@@ -101,3 +101,19 @@ Test "Borrow some BAT reverts if borrow is paused"
     Assert Equal (aToken aBAT BorrowBalance Geoff) (Exactly 1e18)
     Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 1e18)
     Assert Equal (Erc20 BAT TokenBalance aBAT) (Exactly 9e18)
+
+Test "Borrow behalf of"
+    Invariant Success
+    NewComptroller price:1.0
+    NewAToken ZRX aZRX
+    NewAToken BAT aBAT
+    Give aBAT 10e18 BAT -- Faucet some bat to borrow
+    Support aZRX collateralFactor:0.5
+    Support aBAT collateralFactor:0.5
+    Prep Geoff Some ZRX aZRX
+    Mint Geoff 100e18 aZRX
+    EnterMarkets Geoff aZRX aBAT
+    BorrowBehalf Geoff Geoff 1e18 aBAT
+    Assert Equal (aToken aBAT BorrowBalance Geoff) (Exactly 1e18)
+    Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 1e18)
+    Assert Equal (Erc20 BAT TokenBalance aBAT) (Exactly 9e18)

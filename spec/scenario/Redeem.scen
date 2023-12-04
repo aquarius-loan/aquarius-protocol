@@ -225,3 +225,20 @@ Test "Mint, Enter, then Redeem Too Much (collateral factor: 0.1)"
     AllowFailures
     Redeem Geoff 501e8 aZRX
     Assert Failure COMPTROLLER_REJECTION REDEEM_COMPTROLLER_REJECTION INSUFFICIENT_LIQUIDITY
+
+Test "Redeem To"
+    NewComptroller
+    ListedAToken ZRX aZRX initialExchangeRate:1e9
+    Prep Geoff Some ZRX aZRX
+    Prep Torrey Some ZRX aZRX
+    Mint Geoff 2e18 aZRX
+    Assert Equal (Erc20 aZRX TokenBalance Geoff) 20e8
+    Assert Equal (Erc20 aZRX TotalSupply) 20e8
+    Mint Torrey 2e18 aZRX
+    Assert Equal (Erc20 aZRX TokenBalance Geoff) 20e8
+    Assert Equal (Erc20 aZRX TokenBalance Torrey) 20e8
+    Assert Equal (Erc20 aZRX TotalSupply) 40e8
+    RedeemTo Torrey 10e8 Geoff aZRX
+    Assert Equal (Erc20 aZRX TokenBalance Geoff) 20e8
+    Assert Equal (Erc20 aZRX TokenBalance Torrey) 10e8
+    Assert Equal (Erc20 aZRX TotalSupply) 30e8

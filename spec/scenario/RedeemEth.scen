@@ -154,3 +154,18 @@ Test "Two users Mint, one redeems"
     Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
     Assert Equal (Erc20 cETH TokenBalance Torrey) 5e8
     Assert Equal (Erc20 cETH TotalSupply) 9e8
+
+Test "Redeem to"
+    NewComptroller
+    ListedEtherToken cETH initialExchangeRate:0.005e9
+    CallMintEth Geoff 0.002e18 cETH
+    Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
+    Assert Equal (Erc20 cETH TotalSupply) 4e8
+    CallMintEth Torrey 0.004e18 cETH
+    Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
+    Assert Equal (Erc20 cETH TokenBalance Torrey) 8e8
+    Assert Equal (Erc20 cETH TotalSupply) 12e8
+    RedeemToEth Torrey 3e8 Geoff cETH
+    Assert Equal (Erc20 cETH TokenBalance Geoff) 4e8
+    Assert Equal (Erc20 cETH TokenBalance Torrey) 5e8
+    Assert Equal (Erc20 cETH TotalSupply) 9e8
