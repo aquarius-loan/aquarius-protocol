@@ -149,6 +149,10 @@ contract AErc20Harness is AErc20Immutable {
     function harnessCallBorrowAllowed(uint amount) public returns (uint) {
         return comptroller.borrowAllowed(address(this), msg.sender, amount);
     }
+
+    function lockTokens() public pure returns (uint) {
+        return 0;
+    }
 }
 
 contract AErc20Scenario is AErc20Immutable {
@@ -372,6 +376,10 @@ contract AErc20DelegateHarness is AErc20Delegate {
     function harnessCallBorrowAllowed(uint amount) public returns (uint) {
         return comptroller.borrowAllowed(address(this), msg.sender, amount);
     }
+
+    function lockTokens() public pure returns (uint) {
+        return 0;
+    }
 }
 
 contract AErc20DelegateScenario is AErc20Delegate {
@@ -388,6 +396,10 @@ contract AErc20DelegateScenario is AErc20Delegate {
     function getBlockNumber() internal view returns (uint) {
         ComptrollerScenario comptrollerScenario = ComptrollerScenario(address(comptroller));
         return comptrollerScenario.blockNumber();
+    }
+
+    function lockTokens() public pure returns (uint) {
+        return 0;
     }
 }
 

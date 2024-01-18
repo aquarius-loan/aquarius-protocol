@@ -121,11 +121,6 @@ contract ATokenStorage {
      */
     uint public constant protocolSeizeShareMantissa = 5e16; //2.8%
 
-    /**
-     * @notice Token amount to lock at address 0 on first mint
-     */
-    uint public constant lockTokens = 1000;
-
 }
 
 contract ATokenInterface is ATokenStorage {

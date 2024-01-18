@@ -154,6 +154,10 @@ contract CEtherHarness is CEther {
     function harnessRequireNoError(uint error, string calldata message) external pure {
         requireNoError(error, message);
     }
+
+    function lockTokens() public pure returns (uint) {
+        return 0;
+    }
 }
 
 contract CEtherScenario is CEther {
@@ -190,5 +194,9 @@ contract CEtherScenario is CEther {
     function getBlockNumber() internal view returns (uint) {
         ComptrollerScenario comptrollerScenario = ComptrollerScenario(address(comptroller));
         return comptrollerScenario.blockNumber();
+    }
+
+    function lockTokens() public pure returns (uint) {
+        return 0;
     }
 }
